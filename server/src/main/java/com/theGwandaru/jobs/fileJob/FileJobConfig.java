@@ -4,13 +4,8 @@ import com.theGwandaru.domain.JobProgressMessage;
 import com.theGwandaru.domain.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.ItemWriteListener;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.batch.core.*;
+import org.springframework.batch.core.configuration.annotation.*;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
@@ -47,6 +42,7 @@ public class FileJobConfig {
     @Bean
     public Job FileJob() {
         return this.jobBuilderFactory.get("FileJob")
+                .listener(jobExecutionListener())
                 .flow(getFileJobStep())
                 .build()
                 .build();
@@ -55,7 +51,7 @@ public class FileJobConfig {
 
     private Step getFileJobStep() {
         return stepBuilderFactory.get("fileJobStep")
-                .<Person, Person>chunk(10)
+                .<Person, Person>chunk(1000)
                 .reader(getFlatFileItemReader(null))
                 .processor(getItemProcessor())
                 .writer(getItemWriter())
@@ -115,8 +111,20 @@ public class FileJobConfig {
     }
 
     @Bean
-    @StepScope
+    @JobScope
     public ItemWriteListener<Person> getItemWriteListener(@Value(("#{jobParameters['absoluteFileName']}")) String absoluteFileName){
+       return fileJobListener(null);
+    }
+
+    @Bean
+    @JobScope
+    public JobExecutionListener jobExecutionListener(){
+        return fileJobListener(null);
+    }
+
+    @Bean
+    @JobScope
+    public FileJobListener fileJobListener(@Value(("#{jobParameters['absoluteFileName']}")) String absoluteFileName){
         FileJobListener fileJobListener =  new FileJobListener();
         fileJobListener.setFileName(absoluteFileName);
         fileJobListener.setSimpMessagingTemplate(simpMessagingTemplate);

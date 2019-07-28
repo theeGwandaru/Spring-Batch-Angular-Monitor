@@ -23,15 +23,16 @@ export class AppComponent implements OnInit {
         this.fileJobService.getFileJobs()
             .subscribe((response) => {
                 this.availableFileJobs = response;
-            })
+            });
+
         this.topicSubscription = this.rxStompService.watch('/topic/public').subscribe((message: Message) => {
             console.log(message.body);
             let jsonMessage = JSON.parse(message.body)
             this.availableFileJobs.forEach((availableFileJob)=>{
                 if(availableFileJob.absolutePath == jsonMessage.fileName){
-                    availableFileJob.processedPercentage = Math.round((jsonMessage.writeCount / 1001) * 100);
+                    availableFileJob.processedPercentage = jsonMessage.percentageComplete;
                 }
-            })
+            });
             this.receivedMessages.push(message.body);
         });
     }
@@ -41,6 +42,11 @@ export class AppComponent implements OnInit {
     }
 
     startJob(fileJob) {
+        this.availableFileJobs.forEach((availableFileJob)=>{
+            if(availableFileJob.absolutePath == fileJob.fileName){
+                availableFileJob.processedPercentage = 0;
+            }
+        });
         this.fileJobService.startFileJob(fileJob)
             .subscribe((response) => {
                 console.log(response);

@@ -3,7 +3,8 @@ package com.theGwandaru.domain;
 public class JobProgressMessage {
     private String status;
     private String fileName;
-    private int writeCount;
+    private double writeCount;
+    private double percentageComplete;
 
     public String getStatus() {
         return status;
@@ -21,11 +22,19 @@ public class JobProgressMessage {
         this.fileName = fileName;
     }
 
-    public int getWriteCount() {
+    public double getWriteCount() {
         return writeCount;
     }
 
-    public void setWriteCount(int writeCount) {
+    public void setWriteCount(double writeCount) {
         this.writeCount = writeCount;
+    }
+
+    public void setPercentageComplete(double percentageComplete) {
+        this.percentageComplete = percentageComplete;
+    }
+
+    public double getPercentageComplete() {
+        return percentageComplete;
     }
 }
